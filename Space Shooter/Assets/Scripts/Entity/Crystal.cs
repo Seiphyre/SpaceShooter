@@ -78,7 +78,7 @@ public class Crystal : AEntity
     public override MinMaxBounds GetBoundaryPositionOut()
     {
         MinMaxBounds boundaryEntityOut = new MinMaxBounds();
-        MinMaxBounds BoundaryMapOut = GameManager.Instance.GetMapInfo().BoundaryOut;
+        MinMaxBounds BoundaryMapOut = GameManager.Instance.MapInfo.BoundaryOut;
 
         float extent = _particleSys.shape.radius;
 

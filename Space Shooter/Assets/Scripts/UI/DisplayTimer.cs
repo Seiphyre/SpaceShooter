@@ -25,7 +25,8 @@ public class DisplayTimer : MonoBehaviour
     private void Start()
     {
         GameManager.Instance.OnGameStartBegin += EnableUpdate;
-        GameManager.Instance.OnGameOver += DisableUpdate;
+        GameManager.Instance.OnGameOverBegin += DisableUpdate;
+        GameManager.Instance.OnGameRestart += DisableUpdate;
     }
 
     // --v-- Update --v--
@@ -34,7 +35,7 @@ public class DisplayTimer : MonoBehaviour
     {
         if (_isUpdateEnabled)
         {
-            float time = GameManager.Instance.GetGameTime();
+            float time = GameManager.Instance.GameTime;
 
             _textMesh.text = String.Format("{0:00}", Mathf.Floor(time / 3600f));
             _textMesh.text += ":";
@@ -63,7 +64,8 @@ public class DisplayTimer : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStartBegin -= EnableUpdate;
-            GameManager.Instance.OnGameOver -= DisableUpdate;
+            GameManager.Instance.OnGameOverBegin -= DisableUpdate;
+            GameManager.Instance.OnGameRestart -= DisableUpdate;
         }
     }
 }

@@ -5,9 +5,11 @@ using System;
 
 public class GameManager : Singleton<GameManager>
 {
-    // --v-- Visible in Editor --v--
+    // ----- [ Attributes ] --------------------------------------------
 
-    [Header("Bounds")]
+    // --v-- Game Bounds --v--
+
+    [Header("Game Bounds")]
 
     [SerializeField]
     private float _boundsPadding = 0.1f;
@@ -18,6 +20,10 @@ public class GameManager : Singleton<GameManager>
 
     [SerializeField]
     private float _boundsMargin = 1f;
+
+    private MapInfo _mapInfo = new MapInfo();
+
+    // --v-- Player --v--
 
     [Header("Player")]
 
@@ -33,6 +39,10 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private float _playerStartAnimDuration = -1;
 
+    private Player _player;
+
+    // --v-- Debug --v--
+
     [Header("Debug")]
 
     [SerializeField]
@@ -44,39 +54,48 @@ public class GameManager : Singleton<GameManager>
     [SerializeField]
     private bool _shouldDisplayBounds = false;
 
-    // --v-- Private Attributes --v--
-
-    private MapInfo _mapInfo = new MapInfo();
-
-    private Player _player;
+    // --v-- Spawn Manager --v--
 
     private SpawnManager _spawnManager;
 
+    // --v-- Game variables --v--
+
     private float _gameTime = 0;
 
-    private bool _gameIsPaused = true;
+    // --v-- Game Management --v--
+
+    private bool _gameIsPaused = false;
 
     private bool _gameIsRunning = false;
 
+    Coroutine _gameOverCoroutine;
 
+    // --v-- Events --v--
 
-    public event Action OnGameOver;
+    public event Action OnGameOverBegin;
+    public event Action OnGameOverEnd;
     public event Action OnGameStartBegin;
     public event Action OnGameStartEnd;
-    // public event Action OnGamePause;
-
-    // ----------------------------------------------------
+    public event Action OnGameRestart;
 
 
-    public float GetBoundsPadding() { return _boundsPadding; }
-    public float GetBoundsMargin() { return _boundsMargin; }
-    public MapInfo GetMapInfo() { return _mapInfo; }
-    public float GetGameTime() { return _gameTime; }
+    // ----- [ Getters / Setters ] --------------------------------------------
+
+    public float BoundsPadding { get { return _boundsPadding; } }
+
+    public float BoundsMargin { get { return _boundsMargin; } }
+
+    public MapInfo MapInfo { get { return _mapInfo; } }
+
+    public float GameTime { get { return _gameTime; } }
 
     public Player Player { get { return _player; } }
 
 
-    // ----------------------------------------------------
+
+    // ----- [ Functions ] --------------------------------------------
+
+    // --v-- Start/Awake --v--
 
     private void Awake()
     {
@@ -90,7 +109,14 @@ public class GameManager : Singleton<GameManager>
         GameStart();
     }
 
+    // --v-- Update --v--
+
     private void Update()
+    {
+        UpdateGameTime();
+    }
+
+    private void UpdateGameTime()
     {
         if (!_gameIsPaused && _gameIsRunning)
         {
@@ -98,11 +124,13 @@ public class GameManager : Singleton<GameManager>
         }
     }
 
+    // --v-- Game Management --v--
+
     public void PauseGame()
     {
-        if (_gameIsPaused /*|| !_gameIsRunning*/) return;
+        if (_gameIsPaused || !_gameIsRunning) return;
 
-        _spawnManager.PauseManager();
+        _spawnManager.PauseSpawning();
         _gameIsPaused = true;
 
         Time.timeScale = 0;
@@ -110,42 +138,63 @@ public class GameManager : Singleton<GameManager>
 
     public void ResumeGame()
     {
-        if (!_gameIsPaused /*|| !_gameIsRunning*/) return;
+        if (!_gameIsPaused || !_gameIsRunning) return;
 
-        _spawnManager.ResumeManager();
+        _spawnManager.ResumeSpawning();
         _gameIsPaused = false;
 
         Time.timeScale = 1;
         // Prevoir un bullet time
     }
 
-    private void InitPlayer()
-    {
-        _player = Instantiate(_playerPrefab, _playerStartPos.position, _playerStartPos.rotation);
-        _player.OnSelfDestroy += GameOver;
-    }
-
     private void GameOver()
     {
-        _spawnManager.PauseManager();
-        _gameIsRunning = false;
         _gameIsPaused = true;
 
-        StartCoroutine(FinalBulletTime());
+        _spawnManager.StopSpawning();
 
-        if (OnGameOver != null)
-            OnGameOver.Invoke();
+        if (OnGameOverBegin != null)
+            OnGameOverBegin.Invoke();
+
+        Action callback = () =>
+        {
+            _gameIsRunning = false;
+
+            if (OnGameOverEnd != null)
+                OnGameOverEnd.Invoke();
+        };
+
+        _gameOverCoroutine = StartCoroutine(GameOverAnimation(callback));
+    }
+
+    private void GameStop()
+    {
+        _gameIsPaused = true;
+
+        _spawnManager.StopSpawning();
+
+        if (OnGameOverBegin != null)
+            OnGameOverBegin.Invoke();
+
+        Action callback = () =>
+        {
+            _gameIsRunning = false;
+
+            if (OnGameOverEnd != null)
+                OnGameOverEnd.Invoke();
+        };
+
     }
 
     private void GameStart()
     {
         // Set Game Manager
-        _gameIsPaused = false;
+        _gameIsRunning = true;
 
         Action onPlayerStartAnimEnd = () =>
         {
-            _spawnManager.StartManager(1f);
-            _gameIsRunning = true;
+            _spawnManager.StartSpawning(1f);
+
             if (OnGameStartEnd != null)
                 OnGameStartEnd.Invoke();
         };
@@ -158,21 +207,40 @@ public class GameManager : Singleton<GameManager>
             OnGameStartBegin.Invoke();
     }
 
+    private void InitPlayer()
+    {
+        _player = Instantiate(_playerPrefab, _playerStartPos.position, _playerStartPos.rotation);
+        _player.OnSelfDestroy += GameOver;
+    }
+
     public void GameRestart()
     {
+        if (_gameIsRunning)
+        {
+            _spawnManager.StopSpawning();
+
+            if (_player != null)
+                Destroy(_player.gameObject);
+        }
+
         _gameTime = 0;
         Time.timeScale = 1;
-        _spawnManager.StopAndReset();
+
+        _gameIsPaused = false;
 
         AEntity[] entities = FindObjectsOfType<AEntity>();
 
         foreach (AEntity entity in entities)
             entity.Reset();
 
+        OnGameRestart?.Invoke();
+
         GameStart();
     }
 
-    private IEnumerator FinalBulletTime()
+    // --v-- Game over animation --v--
+
+    private IEnumerator GameOverAnimation(Action callback = null)
     {
         float duration = 1f;
         float t = 0;
@@ -187,6 +255,9 @@ public class GameManager : Singleton<GameManager>
         }
 
         Time.timeScale = 0f;
+
+        if (callback != null)
+            callback();
     }
 
     private void UpdateMapBoundaryInformation()

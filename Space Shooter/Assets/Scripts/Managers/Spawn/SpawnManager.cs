@@ -87,26 +87,26 @@ public class SpawnManager : MonoBehaviour
 
     // --v-- Spawn status --v--
 
-    public void PauseManager()
+    public void PauseSpawning()
     {
         _isPaused = true;
     }
 
-    public void StartManager(float delay = 0)
+    public void ResumeSpawning()
+    {
+        _isPaused = false;
+    }
+
+    public void StartSpawning(float delay = 0)
     {
         _isPaused = false;
 
         _nextSpawnTime = _time + delay;
     }
 
-    public void ResumeManager()
+    public void StopSpawning()
     {
-        _isPaused = false;
-    }
-
-    public void StopAndReset()
-    {
-        PauseManager();
+        PauseSpawning();
         _time = 0f;
 
         // Reset Enemies
@@ -116,7 +116,7 @@ public class SpawnManager : MonoBehaviour
 
     private void CreateSpawns()
     {
-        MapInfo map = GameManager.Instance.GetMapInfo();
+        MapInfo map = GameManager.Instance.MapInfo;
 
         float availableHeight = map.BoundaryIn.Max.y - map.BoundaryIn.Min.y;
 

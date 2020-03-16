@@ -11,7 +11,7 @@ public class GameOverPanel : APanel
     {
         base.Start();
 
-        GameManager.Instance.OnGameOver += Show;
+        GameManager.Instance.OnGameOverBegin += Show;
     }
 
     // --v-- Destroy --v--
@@ -19,6 +19,6 @@ public class GameOverPanel : APanel
     {
         // Clear Events
         if (GameManager.Instance != null)
-            GameManager.Instance.OnGameOver -= Show;
+            GameManager.Instance.OnGameOverBegin -= Show;
     }
 }

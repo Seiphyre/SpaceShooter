@@ -288,4 +288,9 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         OnGatherCrystals?.Invoke(nbrOfCollision * Crystal.Value);
     }
 
+    // private void OnDestroy()
+    // {
+    //     SelfDestruction();
+    // }
+
 }

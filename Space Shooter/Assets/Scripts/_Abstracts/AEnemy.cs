@@ -37,7 +37,7 @@ public abstract class AEnemy : ADamagableEntity//AEntity//, IDamagable
     public override MinMaxBounds GetBoundaryPositionIn()
     {
         MinMaxBounds boundaryEntityIn = new MinMaxBounds();
-        MinMaxBounds BoundaryMap = GameManager.Instance.GetMapInfo().Boundary;
+        MinMaxBounds BoundaryMap = GameManager.Instance.MapInfo.Boundary;
 
         boundaryEntityIn.Max = new Vector2(BoundaryMap.Max.x - _boundsRenderer.extents.x, BoundaryMap.Max.y - _boundsRenderer.extents.y);
         boundaryEntityIn.Min = new Vector2(BoundaryMap.Min.x + _boundsRenderer.extents.x, BoundaryMap.Min.y + _boundsRenderer.extents.y);

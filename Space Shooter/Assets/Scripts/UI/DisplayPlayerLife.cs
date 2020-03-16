@@ -25,7 +25,8 @@ public class DisplayPlayerLife : MonoBehaviour
     private void Start()
     {
         GameManager.Instance.OnGameStartBegin += StartDisplaying;
-        GameManager.Instance.OnGameOver += StopDisplaying;
+        GameManager.Instance.OnGameOverBegin += StopDisplaying;
+        GameManager.Instance.OnGameRestart += StopDisplaying;
     }
 
     private void StartDisplaying()
@@ -63,7 +64,8 @@ public class DisplayPlayerLife : MonoBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnGameStartBegin -= StartDisplaying;
-            GameManager.Instance.OnGameOver -= StopDisplaying;
+            GameManager.Instance.OnGameOverBegin -= StopDisplaying;
+            GameManager.Instance.OnGameRestart -= StopDisplaying;
         }
 
         if (_player != null)

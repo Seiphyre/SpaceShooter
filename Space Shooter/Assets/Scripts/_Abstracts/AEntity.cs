@@ -40,7 +40,7 @@ public abstract class AEntity : MonoBehaviour
     public virtual MinMaxBounds GetBoundaryPositionIn()
     {
         MinMaxBounds boundaryEntityIn = new MinMaxBounds();
-        MinMaxBounds BoundaryMapIn = GameManager.Instance.GetMapInfo().BoundaryIn;
+        MinMaxBounds BoundaryMapIn = GameManager.Instance.MapInfo.BoundaryIn;
 
         boundaryEntityIn.Max = new Vector2(BoundaryMapIn.Max.x - _boundsRenderer.extents.x, BoundaryMapIn.Max.y - _boundsRenderer.extents.y);
         boundaryEntityIn.Min = new Vector2(BoundaryMapIn.Min.x + _boundsRenderer.extents.x, BoundaryMapIn.Min.y + _boundsRenderer.extents.y);
@@ -51,7 +51,7 @@ public abstract class AEntity : MonoBehaviour
     public virtual MinMaxBounds GetBoundaryPositionOut()
     {
         MinMaxBounds boundaryEntityOut = new MinMaxBounds();
-        MinMaxBounds BoundaryMapOut = GameManager.Instance.GetMapInfo().BoundaryOut;
+        MinMaxBounds BoundaryMapOut = GameManager.Instance.MapInfo.BoundaryOut;
 
         boundaryEntityOut.Max = new Vector2(BoundaryMapOut.Max.x + _boundsRenderer.extents.x, BoundaryMapOut.Max.y + _boundsRenderer.extents.y);
         boundaryEntityOut.Min = new Vector2(BoundaryMapOut.Min.x - _boundsRenderer.extents.x, BoundaryMapOut.Min.y - _boundsRenderer.extents.y);

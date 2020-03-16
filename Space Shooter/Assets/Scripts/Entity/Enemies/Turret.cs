@@ -79,7 +79,7 @@ public class Turret : AEnemy
 
     private Vector3 CalcStopDestination()
     {
-        MinMaxBounds mapBoundary = GameManager.Instance.GetMapInfo().Boundary;
+        MinMaxBounds mapBoundary = GameManager.Instance.MapInfo.Boundary;
 
         float maxDistance = mapBoundary.Max.x - mapBoundary.Min.x;
         float distance = (maxDistance / 100f) * _destinationDist;
