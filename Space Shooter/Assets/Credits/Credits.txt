@@ -1,0 +1,44 @@
+####################################
+#
+#     UI
+#
+####################################
+
+-- Space GUI -----------------------
+
+Link   : https://craftpix.net/freebies/free-space-shooter-game-gui/
+
+-- Icons ---------------------------
+
+Link   : https://www.flaticon.com/free-icon/heart_2437924
+
+Link   : https://www.flaticon.com/free-icon/gem_1820088
+
+Link   : https://www.flaticon.com/free-icon/timer_941555
+
+Link   : https://www.flaticon.com/free-icon/star_2441712
+
+
+
+####################################
+#
+#     3D Models
+#
+####################################
+
+
+-- Space ships ---------------------
+
+Link    : https://maxparata.itch.io/voxel-spaceships
+
+
+
+####################################
+#
+#     Texture
+#
+####################################
+
+-- Game Background -----------------
+
+Link    : https://pixabay.com/photos/sky-stars-constellations-astronomy-828648/
