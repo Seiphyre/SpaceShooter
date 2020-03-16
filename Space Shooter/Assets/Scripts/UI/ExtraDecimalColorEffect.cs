@@ -34,30 +34,30 @@ public class ExtraDecimalColorEffect : MonoBehaviour
         textWithoutHTML = Regex.Replace(_textMesh.text, htmlRegex, string.Empty);
 
         // Apply the color effect to the text
-        _textMesh.text = ApplyColorEffect(textWithoutHTML);
+        _textMesh.text = ApplyTextEffect(textWithoutHTML);
     }
 
     // --v-- Text modifying --v--
 
-    private string ApplyColorEffect(string nbr)
+    private string ApplyTextEffect(string text)
     {
         string result = "";
         bool shouldApplyColorEffect = true;
 
         int i = 0;
-        while (i < nbr.Length)
+        while (i < text.Length)
         {
-            if (char.IsDigit(nbr, i) && !nbr[i].Equals('0') && shouldApplyColorEffect)
+            if (char.IsDigit(text, i) && !text[i].Equals('0') && shouldApplyColorEffect)
                 shouldApplyColorEffect = false;
 
             if (shouldApplyColorEffect)
             {
                 result += "<color=#" + ColorUtility.ToHtmlStringRGB(EffectColor) + ">";
-                result += nbr[i];
+                result += text[i];
                 result += "</color>";
             }
             else
-                result += nbr[i];
+                result += text[i];
 
             i++;
         }

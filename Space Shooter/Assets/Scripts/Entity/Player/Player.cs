@@ -285,7 +285,7 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         // Update crystal value
         _crystals += nbrOfCollision * Crystal.Value;
 
-        OnGatherCrystals?.Invoke(nbrOfCollision);
+        OnGatherCrystals?.Invoke(nbrOfCollision * Crystal.Value);
     }
 
 }
