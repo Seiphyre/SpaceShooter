@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class ADamagableEntity : AEntity
+public abstract class ADamagableEntity : AEntity
 {
 
     // ----- [ Attributes ] -------------------------------------------

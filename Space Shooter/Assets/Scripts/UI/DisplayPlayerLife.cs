@@ -6,9 +6,16 @@ using TMPro;
 public class DisplayPlayerLife : MonoBehaviour
 {
 
+    // ----- [ Attributes ] -----------------------------------------------------
     private Player _player;
 
     private TextMeshProUGUI _textMesh;
+
+
+
+    // ----- [ Functions ] -----------------------------------------------------
+
+    // --v-- Start/Awake --v-- 
 
     private void Awake()
     {
@@ -17,11 +24,11 @@ public class DisplayPlayerLife : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.OnGameStartBegin += Init;
-        GameManager.Instance.OnGameOver += Reset;
+        GameManager.Instance.OnGameStartBegin += StartDisplaying;
+        GameManager.Instance.OnGameOver += StopDisplaying;
     }
 
-    private void Init()
+    private void StartDisplaying()
     {
         Player player = GameManager.Instance.Player;
 
@@ -29,22 +36,37 @@ public class DisplayPlayerLife : MonoBehaviour
         {
             _player = player;
 
-            UpdateDisplayedLife();
-            _player.OnTakeDamage += UpdateDisplayedLife;
+            UpdateAndDisplayLife();
+            _player.OnTakeDamage += UpdateAndDisplayLife;
         }
     }
 
-    private void Reset()
+    private void StopDisplaying()
     {
         Player player = GameManager.Instance.Player;
 
         if (player != null && player == _player)
-            player.OnTakeDamage -= UpdateDisplayedLife;
+            player.OnTakeDamage -= UpdateAndDisplayLife;
     }
 
-    private void UpdateDisplayedLife()
+    // --v-- Display Life --v--
+
+    private void UpdateAndDisplayLife()
     {
         _textMesh.text = _player.Life.ToString();
     }
 
+    // --v-- Destroy --v--
+    private void OnDestroy()
+    {
+        // Clear Events
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStartBegin -= StartDisplaying;
+            GameManager.Instance.OnGameOver -= StopDisplaying;
+        }
+
+        if (_player != null)
+            _player.OnTakeDamage -= UpdateAndDisplayLife;
+    }
 }

@@ -2,23 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PausePanel : MonoBehaviour
+public class PausePanel : APanel
 {
-    void Start()
-    {
-        gameObject.SetActive(false);
-    }
 
+    // ----- [ Functions ] -----------------------------------------------------
 
-    public void Display()
+    // --v-- Show/Hide panel --v--
+    public override void Show()
     {
-        gameObject.SetActive(true);
+        base.Show();
+
         GameManager.Instance.PauseGame();
     }
 
-    public void Hide()
+    public override void Hide()
     {
-        gameObject.SetActive(false);
+        base.Hide();
+
         GameManager.Instance.ResumeGame();
     }
 }

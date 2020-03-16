@@ -6,26 +6,38 @@ using System.Text.RegularExpressions;
 
 public class ExtraDecimalColorEffect : MonoBehaviour
 {
+    // ----- [ Attributes ] -----------------------------------------------------
+
     [SerializeField]
     private Color EffectColor = Color.gray;
 
     private TextMeshProUGUI _textMesh;
+
+
+
+    // ----- [ Functions ] -----------------------------------------------------
+
+    // --v-- Start/Awake --v-- 
 
     private void Awake()
     {
         _textMesh = GetComponent<TextMeshProUGUI>();
     }
 
-    // Update is called once per frame
-    void LateUpdate()
+    // --v-- Update/LateUpdate --v--
+    private void LateUpdate()
     {
+        // Removing the HTML from the text
         string htmlRegex = "<.*?>";
         string textWithoutHTML = _textMesh.text;
 
         textWithoutHTML = Regex.Replace(_textMesh.text, htmlRegex, string.Empty);
 
+        // Apply the color effect to the text
         _textMesh.text = ApplyColorEffect(textWithoutHTML);
     }
+
+    // --v-- Text modifying --v--
 
     private string ApplyColorEffect(string nbr)
     {

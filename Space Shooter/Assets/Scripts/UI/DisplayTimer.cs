@@ -6,9 +6,16 @@ using System;
 
 public class DisplayTimer : MonoBehaviour
 {
+    // ----- [ Attributes ] -----------------------------------------------------
     private TextMeshProUGUI _textMesh;
 
-    private bool _canUpdate = false;
+    private bool _isUpdateEnabled = false;
+
+
+
+    // ----- [ Functions ] -----------------------------------------------------
+
+    // --v-- Start/Awake --v-- 
 
     private void Awake()
     {
@@ -17,60 +24,46 @@ public class DisplayTimer : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.OnGameStartBegin += StartUpdate;
-        GameManager.Instance.OnGameOver += StopUpdate;
+        GameManager.Instance.OnGameStartBegin += EnableUpdate;
+        GameManager.Instance.OnGameOver += DisableUpdate;
     }
 
-    private void StartUpdate()
-    {
-        _canUpdate = true;
-    }
-
-    private void StopUpdate()
-    {
-        _canUpdate = false;
-    }
+    // --v-- Update --v--
 
     private void Update()
     {
-        if (_canUpdate)
+        if (_isUpdateEnabled)
         {
             float time = GameManager.Instance.GetGameTime();
 
-            //_textMesh.SetText("Time : {0}:{1}:{2:2.2}", Time.time / 3600f, Time.time / 60f, Time.time % 60);
             _textMesh.text = String.Format("{0:00}", Mathf.Floor(time / 3600f));
             _textMesh.text += ":";
             _textMesh.text += String.Format("{0:00}", Mathf.Floor(time / 60f));
             _textMesh.text += ":";
             _textMesh.text += String.Format("{0:00}", Mathf.Floor(time % 60));
-
-            //_textMesh.text = Grey(_textMesh.text);
         }
     }
 
-    private string Grey(string nbr)
+    // --v-- Managing update --v--
+
+    private void EnableUpdate()
     {
-        string result = "";
-        bool isGrey = true;
+        _isUpdateEnabled = true;
+    }
 
-        int i = 0;
-        while (i < nbr.Length)
+    private void DisableUpdate()
+    {
+        _isUpdateEnabled = false;
+    }
+
+    // --v-- Destroy --v--
+    private void OnDestroy()
+    {
+        // Clear Events
+        if (GameManager.Instance != null)
         {
-            if (char.IsDigit(nbr, i) && !nbr[i].Equals('0') && isGrey) // if (!nbr[i].Equals('0') && isGrey)
-                isGrey = false;
-
-            if (isGrey)
-            {
-                result += "<color=#969696>";
-                result += nbr[i];
-                result += "</color>";
-            }
-            else
-                result += nbr[i];
-
-            i++;
+            GameManager.Instance.OnGameStartBegin -= EnableUpdate;
+            GameManager.Instance.OnGameOver -= DisableUpdate;
         }
-
-        return result;
     }
 }

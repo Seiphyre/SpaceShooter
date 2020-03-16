@@ -3,35 +3,56 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class GameStartPanel : MonoBehaviour
+public class GameStartPanel : APanel
 {
+    // ----- [ Attributes ] -----------------------------------------------------
+
     [SerializeField]
     private TextMeshProUGUI text;
 
-    void Start()
-    {
-        GameManager.Instance.OnGameStartBegin += Display;
-        GameManager.Instance.OnGameStartEnd += ShowSecondText;
 
-        gameObject.SetActive(false);
+
+    // ----- [ Functions ] -----------------------------------------------------
+
+    // --v-- Start --v-- 
+
+    protected override void Start()
+    {
+        base.Start();
+
+        GameManager.Instance.OnGameStartBegin += Show;
+        GameManager.Instance.OnGameStartBegin += DisplayFirstText;
+        GameManager.Instance.OnGameStartEnd += DisplaySecondText;
     }
 
+    // --v-- Text Management --v-- 
 
-    public void Display()
-    {
-        gameObject.SetActive(true);
-    }
-
-    public void ShowSecondText()
+    private void DisplaySecondText()
     {
         text.text = "GO !!";
 
         Invoke("Hide", 1);
     }
 
-    public void Hide()
+    private void DisplayFirstText()
     {
-        gameObject.SetActive(false);
+        text.text = "Ready ??";
     }
 
+    // --v-- Destroy --v--
+
+    private void OnDestroy()
+    {
+        // Clear invokes
+        if (IsInvoking("Hide"))
+            CancelInvoke("Hide");
+
+        // Clear Events 
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStartBegin -= Show;
+            GameManager.Instance.OnGameStartBegin -= DisplayFirstText;
+            GameManager.Instance.OnGameStartEnd -= DisplaySecondText;
+        }
+    }
 }

@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 
 public class DisplayGameMoney : MonoBehaviour
 {
+    // ----- [ Attributes ] -----------------------------------------------------
+
     private Player _player;
 
     private TextMeshProUGUI _textMesh;
@@ -15,8 +17,13 @@ public class DisplayGameMoney : MonoBehaviour
 
     private int amountOfMoneyToAddInAnim;
 
-    private Coroutine Anim = null;
+    private Coroutine AnimCoroutine = null;
 
+
+
+    // ----- [ Functions ] -----------------------------------------------------
+
+    // --v-- Start/Awake --v--
     private void Awake()
     {
         _textMesh = GetComponent<TextMeshProUGUI>();
@@ -24,11 +31,11 @@ public class DisplayGameMoney : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.OnGameStartBegin += Init;
-        GameManager.Instance.OnGameOver += Reset;
+        GameManager.Instance.OnGameStartBegin += StartDisplaying;
+        GameManager.Instance.OnGameOver += StopDisplaying;
     }
 
-    private void Init()
+    private void StartDisplaying()
     {
         Player player = GameManager.Instance.Player;
 
@@ -36,39 +43,39 @@ public class DisplayGameMoney : MonoBehaviour
         {
             _player = player;
 
-            UpdateDisplayedMoney();
-            _player.OnGatherCrystals += UpdateDisplayedMoney;
+            UpdateAndDisplayMoney();
+            _player.OnGatherCrystals += UpdateAndDisplayMoney;
         }
     }
 
-    private void Reset()
+    private void StopDisplaying()
     {
         Player player = GameManager.Instance.Player;
 
         if (player != null && player == _player)
-            player.OnGatherCrystals -= UpdateDisplayedMoney;
+            player.OnGatherCrystals -= UpdateAndDisplayMoney;
     }
 
-    private void UpdateDisplayedMoney(int amount = 0)
+    private void UpdateAndDisplayMoney(int amount = 0)
     {
         if (amount != 0)
         {
-            //_textMesh.text = String.Format("{0:0000}", _player.Crystals);
-
             int extraAmountOfMoney = 0;
-            if (Anim != null)
+            if (AnimCoroutine != null)
             {
-                StopCoroutine (Anim);
+                StopCoroutine(AnimCoroutine);
 
                 int currentAmountOfMoney = ParseNumber(_textMesh.text);
                 extraAmountOfMoney = _amountOfMoneyAfterAnim - currentAmountOfMoney;
             }
 
-            Anim = StartCoroutine(AddMoneyAnim((amount * Crystal.Value) + extraAmountOfMoney));
+            AnimCoroutine = StartCoroutine(AddMoneyAnim((amount * Crystal.Value) + extraAmountOfMoney));
         }
         else
             _textMesh.text = String.Format("{0:0000}", _player.Crystals);
     }
+
+    // --v-- Animation --v--
 
     private IEnumerator AddMoneyAnim(int amountOfMoney)
     {
@@ -100,5 +107,19 @@ public class DisplayGameMoney : MonoBehaviour
         textWithoutHTML = Regex.Replace(text, htmlRegex, string.Empty);
 
         return Int32.Parse(textWithoutHTML);
+    }
+
+    // --v-- Destroy --v--
+    private void OnDestroy()
+    {
+        // Clear Events
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnGameStartBegin -= StartDisplaying;
+            GameManager.Instance.OnGameOver -= StopDisplaying;
+        }
+
+        if (_player != null)
+            _player.OnGatherCrystals -= UpdateAndDisplayMoney;
     }
 }

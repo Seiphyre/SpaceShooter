@@ -2,24 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameOverPanel : MonoBehaviour
+public class GameOverPanel : APanel
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        GameManager.Instance.OnGameOver += Display;
+    // ----- [ Functions ] -----------------------------------------------------
 
-        gameObject.SetActive(false);
+    // --v-- Start --v-- 
+    protected override void Start()
+    {
+        base.Start();
+
+        GameManager.Instance.OnGameOver += Show;
     }
 
-
-    public void Display()
+    // --v-- Destroy --v--
+    private void OnDestroy()
     {
-        gameObject.SetActive(true);
-    }
-
-    public void Hide()
-    {
-        gameObject.SetActive(false);
+        // Clear Events
+        if (GameManager.Instance != null)
+            GameManager.Instance.OnGameOver -= Show;
     }
 }
