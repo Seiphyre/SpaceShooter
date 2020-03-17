@@ -41,10 +41,11 @@ public class NumberIncreaseTextAnim : MonoBehaviour
         int extraAmount = 0;
         if (AnimCoroutine != null)
         {
-            StopCoroutine(AnimCoroutine);
-
             int currentAmount = ParseNumber(_textMesh.text);
             extraAmount = _amountAfterAnim - currentAmount;
+
+            StopCoroutine(AnimCoroutine);
+            AnimCoroutine = null;
         }
 
         AnimCoroutine = StartCoroutine(PlayCoroutine(amount + extraAmount));
@@ -55,7 +56,6 @@ public class NumberIncreaseTextAnim : MonoBehaviour
         float t = 0;
 
         int amountBeforeAnim = ParseNumber(_textMesh.text);
-
         _amountAfterAnim = amountBeforeAnim + newAmount;
 
         while (t <= 1)
@@ -69,6 +69,8 @@ public class NumberIncreaseTextAnim : MonoBehaviour
         }
 
         _textMesh.text = NumberToFormatString(Mathf.FloorToInt(_amountAfterAnim));
+
+        AnimCoroutine = null;
         _amountAfterAnim = 0;
     }
 
