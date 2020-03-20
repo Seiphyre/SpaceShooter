@@ -24,6 +24,7 @@ public class DisplayTimer : MonoBehaviour
 
     private void Start()
     {
+        GameManager.Instance.OnGameInit += HandleOnGameInit;
         GameManager.Instance.OnGameStart += HandleOnGameStartEnd;
         GameManager.Instance.OnGameStop += HandleOnGameOverBegin;
     }
@@ -34,14 +35,19 @@ public class DisplayTimer : MonoBehaviour
     {
         if (_isUpdateEnabled)
         {
-            float time = GameManager.Instance.GameTime;
-
-            _textMesh.text = String.Format("{0:00}", Mathf.Floor(time / 3600f));
-            _textMesh.text += ":";
-            _textMesh.text += String.Format("{0:00}", Mathf.Floor(time / 60f));
-            _textMesh.text += ":";
-            _textMesh.text += String.Format("{0:00}", Mathf.Floor(time % 60));
+            UpdateGameTime();
         }
+    }
+
+    private void UpdateGameTime()
+    {
+        float time = GameManager.Instance.GameTime;
+
+        _textMesh.text = String.Format("{0:00}", Mathf.Floor(time / 3600f));
+        _textMesh.text += ":";
+        _textMesh.text += String.Format("{0:00}", Mathf.Floor(time / 60f));
+        _textMesh.text += ":";
+        _textMesh.text += String.Format("{0:00}", Mathf.Floor(time % 60));
     }
 
     // --v-- Managing update --v--
@@ -68,12 +74,18 @@ public class DisplayTimer : MonoBehaviour
         EnableUpdate();
     }
 
+    private void HandleOnGameInit()
+    {
+        UpdateGameTime();
+    }
+
     // --v-- Destroy --v--
     private void OnDestroy()
     {
         // Clear Events
         if (GameManager.Instance != null)
         {
+            GameManager.Instance.OnGameInit -= HandleOnGameInit;
             GameManager.Instance.OnGameStart -= HandleOnGameStartEnd;
             GameManager.Instance.OnGameStop -= HandleOnGameOverBegin;
         }
