@@ -48,13 +48,6 @@ public class Bullet : AEntity
         }
     }
 
-    // --v-- Abstract AEntity --v--
-
-    public override void Reset()
-    {
-        SelfDestroy();
-    }
-
     // --v-- Functions : Movement --v--
 
     private void CalculateMovement()

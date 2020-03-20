@@ -88,12 +88,6 @@ public class Crystal : AEntity
         return boundaryEntityOut;
     }
 
-    public override void Reset()
-    {
-        DestroySelf();
-    }
-
-
     // --v-- Movements --v--
 
     private void CalculateMovement()

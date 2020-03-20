@@ -27,7 +27,7 @@ public class Spawn
     public void SetEnemy(AEnemy enemy)
     {
         _enemy = enemy;
-        _enemy.OnSelfDestroy += RemoveEnemy;
+        _enemy.OnDestruction += HandleEnemyOnDestruction;
     }
 
 
@@ -84,6 +84,13 @@ public class Spawn
         }
 
         return instanciatedEnemy;
+    }
+
+    // --v-- Event Handler --v--
+
+    private void HandleEnemyOnDestruction(EntityDestructionContext context)
+    {
+        RemoveEnemy();
     }
 
     // --v-- Private Functions --v--

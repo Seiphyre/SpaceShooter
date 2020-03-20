@@ -24,9 +24,8 @@ public class DisplayTimer : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.OnGameStartBegin += EnableUpdate;
-        GameManager.Instance.OnGameOverBegin += DisableUpdate;
-        GameManager.Instance.OnGameRestart += DisableUpdate;
+        GameManager.Instance.OnGameStart += HandleOnGameStartEnd;
+        GameManager.Instance.OnGameStop += HandleOnGameOverBegin;
     }
 
     // --v-- Update --v--
@@ -57,15 +56,26 @@ public class DisplayTimer : MonoBehaviour
         _isUpdateEnabled = false;
     }
 
+    // --v-- Event Handler --v--
+
+    private void HandleOnGameOverBegin()
+    {
+        DisableUpdate();
+    }
+
+    private void HandleOnGameStartEnd()
+    {
+        EnableUpdate();
+    }
+
     // --v-- Destroy --v--
     private void OnDestroy()
     {
         // Clear Events
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnGameStartBegin -= EnableUpdate;
-            GameManager.Instance.OnGameOverBegin -= DisableUpdate;
-            GameManager.Instance.OnGameRestart -= DisableUpdate;
+            GameManager.Instance.OnGameStart -= HandleOnGameStartEnd;
+            GameManager.Instance.OnGameStop -= HandleOnGameOverBegin;
         }
     }
 }

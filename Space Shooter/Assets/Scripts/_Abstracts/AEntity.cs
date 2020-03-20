@@ -33,8 +33,6 @@ public abstract class AEntity : MonoBehaviour
         }*/
     }
 
-    public abstract void Reset();
-
     // --v-- Boundary --v--
 
     public virtual MinMaxBounds GetBoundaryPositionIn()

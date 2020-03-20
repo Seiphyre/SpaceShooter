@@ -20,9 +20,9 @@ public class GameStartPanel : APanel
     {
         base.Start();
 
-        GameManager.Instance.OnGameStartBegin += Show;
-        GameManager.Instance.OnGameStartBegin += DisplayFirstText;
-        GameManager.Instance.OnGameStartEnd += DisplaySecondText;
+        GameManager.Instance.OnGameInit += Show;
+        GameManager.Instance.OnGameInit += DisplayFirstText;
+        GameManager.Instance.OnGameStart += DisplaySecondText;
     }
 
     // --v-- Text Management --v-- 
@@ -50,9 +50,9 @@ public class GameStartPanel : APanel
         // Clear Events 
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnGameStartBegin -= Show;
-            GameManager.Instance.OnGameStartBegin -= DisplayFirstText;
-            GameManager.Instance.OnGameStartEnd -= DisplaySecondText;
+            GameManager.Instance.OnGameInit -= Show;
+            GameManager.Instance.OnGameInit -= DisplayFirstText;
+            GameManager.Instance.OnGameStart -= DisplaySecondText;
         }
     }
 }

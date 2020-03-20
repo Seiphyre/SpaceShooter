@@ -59,6 +59,15 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
 
     private int _crystals;
 
+
+    // --v-- Follow Path Coroutine --v--
+
+    private Coroutine _followPathCoroutineInstance;
+
+    private CurvePath _followingPath = null;
+
+    private Action _followPathCallback = null;
+
     // // --v-- Events --v--
 
     // public event Action OnSelfDestroy;
@@ -114,16 +123,6 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         {
             FireBullet();
         }
-    }
-
-    // --v-- Abstract AEntity --v--
-
-    public override void Reset()
-    {
-        base.Reset();
-
-        _fireRateCountdown = 0;
-        _crystals = 0;
     }
 
     // --v-- Weapon --v--
@@ -211,11 +210,30 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         ResetMovementAnimation();
 
         // Start following the path
-        StartCoroutine(FollowPathCoroutine(path, duration, callback));
-
+        _followingPath = path;
+        _followPathCallback = callback;
+        _followPathCoroutineInstance = StartCoroutine(FollowPathRoutine(path, duration, callback));
     }
 
-    private IEnumerator FollowPathCoroutine(CurvePath path, float duration, Action callback)
+    public void StopFollowingPath()
+    {
+        if (_followPathCoroutineInstance == null) return;
+
+        StopCoroutine(_followPathCoroutineInstance);
+        _followPathCoroutineInstance = null;
+
+        // Reset position & rotation
+        transform.position = _followingPath.EvaluatePosition(1);
+        transform.rotation = _followingPath.EvaluateRotation(1);
+
+        // Reset Animator
+        ResetMovementAnimation();
+
+        if (_followPathCallback != null)
+            _followPathCallback();
+    }
+
+    private IEnumerator FollowPathRoutine(CurvePath path, float duration, Action callback)
     {
         _animator.applyRootMotion = true;
 
@@ -249,6 +267,10 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         _animator.applyRootMotion = false;
 
         callback?.Invoke();
+
+        _followPathCoroutineInstance = null;
+        _followingPath = null;
+        _followPathCallback = null;
     }
 
     private void ResetMovementAnimation()
@@ -287,10 +309,5 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
 
         OnGatherCrystals?.Invoke(nbrOfCollision * Crystal.Value);
     }
-
-    // private void OnDestroy()
-    // {
-    //     SelfDestruction();
-    // }
 
 }

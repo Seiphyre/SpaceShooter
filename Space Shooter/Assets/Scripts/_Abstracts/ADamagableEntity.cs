@@ -3,6 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+public enum EntityDestructionContext
+{
+    DESTROYED_BY_OTHER,
+    SELF_DESTROYED,
+    DESTROYED_BY_DAMAGE
+}
+
 public abstract class ADamagableEntity : AEntity
 {
 
@@ -30,7 +37,7 @@ public abstract class ADamagableEntity : AEntity
 
     // --v-- Events --v--
 
-    public event Action OnSelfDestroy;
+    public event Action<EntityDestructionContext> OnDestruction;
     public event Action OnTakeDamage;
 
     // ----- [ Getter / Setters ] -------------------------------------
@@ -56,14 +63,6 @@ public abstract class ADamagableEntity : AEntity
 
     }
 
-
-    // --v-- AEntity Override --v--
-
-    public override void Reset()
-    {
-        _currentLife = _maxLife;
-    }
-
     // --v-- Damage Management --v--
 
     public void TakeDamage(int amountOfDamage = 1)
@@ -79,7 +78,7 @@ public abstract class ADamagableEntity : AEntity
         {
             Instantiate(_explosionPrefab, transform.position, Quaternion.identity);
 
-            DestructionByOther();
+            DestructionByDamage();
         }
         else // Damage Animation
         {
@@ -89,15 +88,23 @@ public abstract class ADamagableEntity : AEntity
 
     protected virtual void SelfDestruction()
     {
-        if (OnSelfDestroy != null)
-            OnSelfDestroy.Invoke();
+        if (OnDestruction != null)
+            OnDestruction.Invoke(EntityDestructionContext.SELF_DESTROYED);
 
-        Destroy(gameObject);
+        Destruct();
     }
 
-    protected virtual void DestructionByOther()
+    protected virtual void DestructionByDamage()
     {
-        SelfDestruction();
+        if (OnDestruction != null)
+            OnDestruction.Invoke(EntityDestructionContext.DESTROYED_BY_DAMAGE);
+
+        Destruct();
+    }
+
+    protected virtual void Destruct()
+    {
+        Destroy(gameObject);
     }
 
     // protected void DamagePlayer(Player player)
@@ -140,5 +147,13 @@ public abstract class ADamagableEntity : AEntity
             yield return null;
         }
 
+    }
+
+    private void OnDestroy()
+    {
+        if (OnDestruction != null)
+            OnDestruction.Invoke(EntityDestructionContext.DESTROYED_BY_OTHER);
+
+        Destruct();
     }
 }

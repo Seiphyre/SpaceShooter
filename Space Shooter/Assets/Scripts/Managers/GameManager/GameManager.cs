@@ -60,23 +60,29 @@ public class GameManager : Singleton<GameManager>
 
     // --v-- Game variables --v--
 
-    private float _gameTime = 0;
+    private float _gameTime;
+
+    private bool _shouldPlayIntro;
+    private bool _shouldPlayOutro;
 
     // --v-- Game Management --v--
 
-    private bool _gameIsPaused = false;
+    //GameStatus _gameStatus = GameStatus.IS_NOT_RUNNING;
+    //GameStatus _previousGameStatus = GameStatus.IS_NOT_RUNNING;
 
-    private bool _gameIsRunning = false;
+    GameState _currentState;
+
+    GameState _previousGameState;
 
     Coroutine _gameOverCoroutine;
 
     // --v-- Events --v--
 
-    public event Action OnGameOverBegin;
-    public event Action OnGameOverEnd;
-    public event Action OnGameStartBegin;
-    public event Action OnGameStartEnd;
-    public event Action OnGameRestart;
+    public event Action OnGameInit;
+    public event Action OnGameStart;
+    public event Action OnGameStop;
+    public event Action OnGameIsOver;
+    public event Action OnGameTerminate;
 
 
     // ----- [ Getters / Setters ] --------------------------------------------
@@ -100,14 +106,22 @@ public class GameManager : Singleton<GameManager>
     private void Awake()
     {
         UpdateMapBoundaryInformation();
+
+        _gameTime = 0;
+        _shouldPlayIntro = true;
+        _shouldPlayOutro = true;
+
+        _currentState = GameState.NOT_RUNNING;
+        _previousGameState = GameState.NOT_RUNNING;
     }
 
     private void Start()
     {
         _spawnManager = FindObjectOfType<SpawnManager>();
 
-        GameStart();
+        LaunchGame(_shouldPlayIntro);
     }
+
 
     // --v-- Update --v--
 
@@ -118,130 +132,216 @@ public class GameManager : Singleton<GameManager>
 
     private void UpdateGameTime()
     {
-        if (!_gameIsPaused && _gameIsRunning)
+        if (_currentState == GameState.RUNNING)
         {
             _gameTime += Time.deltaTime;
         }
     }
 
+
+    // --v-- Event Handler --v--
+
+    private void HandleOnPlayerOnDestruction(EntityDestructionContext context)
+    {
+        if (context == EntityDestructionContext.DESTROYED_BY_DAMAGE)
+        {
+            OnGameIsOver?.Invoke();
+            StopGame(_shouldPlayOutro);
+        }
+    }
+
+
     // --v-- Game Management --v--
+
+    // private void SetState(GameState state)
+    // {
+    //     if (state != null && _currentGameState != null && state.GetType().Equals(_currentGameState.GetType())) return;
+
+    //     if (_currentGameState != null)
+    //         _currentGameState.OnStateExit();
+
+    //     _currentGameState = state;
+
+    //     if (_currentGameState != null)
+    //         _currentGameState.OnStateEnter();
+    // }
 
     public void PauseGame()
     {
-        if (_gameIsPaused || !_gameIsRunning) return;
+        if (_currentState == GameState.NOT_RUNNING) return;
 
         _spawnManager.PauseSpawning();
-        _gameIsPaused = true;
 
         Time.timeScale = 0;
+
+        _previousGameState = _currentState;
+        _currentState = GameState.IS_PAUSED;
     }
 
     public void ResumeGame()
     {
-        if (!_gameIsPaused || !_gameIsRunning) return;
+        if (_currentState != GameState.IS_PAUSED) return;
 
         _spawnManager.ResumeSpawning();
-        _gameIsPaused = false;
 
         Time.timeScale = 1;
-        // Prevoir un bullet time
+
+        _currentState = GameState.RUNNING;
     }
 
-    private void GameOver()
+    public void LaunchGame(bool enableIntro = true)
     {
-        _gameIsPaused = true;
+        InitGame();
 
-        _spawnManager.StopSpawning();
-
-        if (OnGameOverBegin != null)
-            OnGameOverBegin.Invoke();
-
-        Action callback = () =>
-        {
-            _gameIsRunning = false;
-
-            if (OnGameOverEnd != null)
-                OnGameOverEnd.Invoke();
-        };
-
-        _gameOverCoroutine = StartCoroutine(GameOverAnimation(callback));
-    }
-
-    private void GameStop()
-    {
-        _gameIsPaused = true;
-
-        _spawnManager.StopSpawning();
-
-        if (OnGameOverBegin != null)
-            OnGameOverBegin.Invoke();
-
-        Action callback = () =>
-        {
-            _gameIsRunning = false;
-
-            if (OnGameOverEnd != null)
-                OnGameOverEnd.Invoke();
-        };
-
-    }
-
-    private void GameStart()
-    {
-        // Set Game Manager
-        _gameIsRunning = true;
-
-        Action onPlayerStartAnimEnd = () =>
-        {
-            _spawnManager.StartSpawning(1f);
-
-            if (OnGameStartEnd != null)
-                OnGameStartEnd.Invoke();
-        };
-
-        // Set Player
-        InitPlayer();
-        _player.FollowPath(_playerStartAnim, _playerStartAnimDuration, onPlayerStartAnimEnd);
-
-        if (OnGameStartBegin != null)
-            OnGameStartBegin.Invoke();
+        if (enableIntro)
+            PlayGameIntro(StartGame);
+        else
+            StartGame();
     }
 
     private void InitPlayer()
     {
-        _player = Instantiate(_playerPrefab, _playerStartPos.position, _playerStartPos.rotation);
-        _player.OnSelfDestroy += GameOver;
+        if (_player == null)
+        {
+            _player = Instantiate(_playerPrefab, _playerStartPos.position, _playerStartPos.rotation);
+            _player.OnDestruction += HandleOnPlayerOnDestruction;
+        }
+        else
+        {
+            _player.transform.position = _playerStartPos.position;
+            _player.transform.rotation = _playerStartPos.rotation;
+        }
     }
 
-    public void GameRestart()
+    public void RestartGame(bool _shouldLaunchGameAgain = true)
     {
-        if (_gameIsRunning)
+        // Resume the game
+        if (_currentState == GameState.IS_PAUSED)
         {
-            _spawnManager.StopSpawning();
-
-            if (_player != null)
-                Destroy(_player.gameObject);
+            ResumeGame();
         }
 
+        if (_currentState != GameState.NOT_RUNNING)
+        {
+            // End the game
+            if (_currentState == GameState.INIT || _currentState == GameState.PLAY_INTRO)
+            {
+                CancelGameIntro();
+                TerminateGame();
+            }
+
+            else if (_currentState == GameState.RUNNING)
+            {
+                StopGame(false);
+            }
+
+            else if (/*_currentState == GameState.STOP || */_currentState == GameState.PLAY_OUTRO/* || _currentState == GameState.TERMINATE*/)
+            {
+                CancelGameOutro();
+                TerminateGame();
+            }
+
+            // Reset the game
+            ResetGame();
+        }
+
+        // Start the game again
+        if (_shouldLaunchGameAgain)
+        {
+            LaunchGame();
+        }
+    }
+
+    public void QuitGame()
+    {
+
+        RestartGame(false);
+
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+
+    }
+
+    private void InitGame()
+    {
+        _currentState = GameState.INIT;
+
+        InitPlayer();
+
+        OnGameInit?.Invoke();
+    }
+
+    private void StartGame()
+    {
+        _spawnManager.StartSpawning(1f);
+
+        OnGameStart?.Invoke();
+
+        _currentState = GameState.RUNNING;
+    }
+
+    private void ResetGame()
+    {
         _gameTime = 0;
         Time.timeScale = 1;
-
-        _gameIsPaused = false;
 
         AEntity[] entities = FindObjectsOfType<AEntity>();
 
         foreach (AEntity entity in entities)
-            entity.Reset();
-
-        OnGameRestart?.Invoke();
-
-        GameStart();
+            DestroyImmediate(entity.gameObject);
     }
 
-    // --v-- Game over animation --v--
-
-    private IEnumerator GameOverAnimation(Action callback = null)
+    private void StopGame(bool enableOutro = true)
     {
+        _currentState = GameState.STOP;
+
+        // Stop spawning enemies
+        _spawnManager.StopSpawning();
+
+        // Invoke Event
+        OnGameStop?.Invoke();
+
+        if (enableOutro)
+            PlayGameOutro(TerminateGame);
+        else
+            TerminateGame();
+    }
+
+    private void TerminateGame()
+    {
+        _currentState = GameState.TERMINATE;
+
+        OnGameTerminate?.Invoke();
+    }
+
+    // --v-- Intro --v--
+
+    private void PlayGameIntro(Action callback = null)
+    {
+        _currentState = GameState.PLAY_INTRO;
+
+        _player.FollowPath(_playerStartAnim, _playerStartAnimDuration, callback);
+    }
+
+    private void CancelGameIntro()
+    {
+        _player.StopFollowingPath();
+    }
+
+    // --v-- Outro --v--
+
+    private void PlayGameOutro(Action callback = null)
+    {
+        _gameOverCoroutine = StartCoroutine(PlayGameOutroRoutine(callback));
+    }
+
+    private IEnumerator PlayGameOutroRoutine(Action callback = null)
+    {
+        _currentState = GameState.PLAY_OUTRO;
+
         float duration = 1f;
         float t = 0;
 
@@ -258,7 +358,20 @@ public class GameManager : Singleton<GameManager>
 
         if (callback != null)
             callback();
+
+        _gameOverCoroutine = null;
     }
+
+    private void CancelGameOutro()
+    {
+        if (_gameOverCoroutine != null)
+        {
+            StopCoroutine(_gameOverCoroutine);
+            _gameOverCoroutine = null;
+        }
+    }
+
+    // --v-- Boundary / Map --v--
 
     private void UpdateMapBoundaryInformation()
     {
@@ -279,6 +392,9 @@ public class GameManager : Singleton<GameManager>
 
         return Mathf.Lerp(0f, lenght, _boundsExtraPaddingTop / 100f);
     }
+
+
+    // --v-- Draw Gizmos --v--
 
     public void OnDrawGizmos()
     {
@@ -329,7 +445,134 @@ public class GameManager : Singleton<GameManager>
             Gizmos.DrawLine(d, a);
         }
     }
+
+
+
+    // -- State Machine -----------------------------------------------------
+
+    //     public abstract class GameState
+    //     {
+    //         protected GameManager _gm;
+
+    //         public virtual void OnStateEnter() { }
+    //         public virtual void OnStateExit() { }
+
+    //         public GameState(GameManager gameManage)
+    //         {
+    //             _gm = gameManage;
+    //         }
+    //     }
+
+    //     public class GameIsInit : GameState
+    //     {
+    //         public GameIsInit(GameManager gameManager) : base(gameManager) { }
+
+    //         public override void OnStateEnter()
+    //         {
+    //             _gm.InitGame();
+    //         }
+    //     }
+
+    //     public class GameIsPlayingIntro : GameState
+    //     {
+    //         public GameIsPlayingIntro(GameManager gameManager) : base(gameManager) { }
+
+    //         public override void OnStateEnter()
+    //         {
+    //             _gm.PlayIntroAnimation(_gm.StartGame);
+    //         }
+    //     }
+
+    //     public class GameIsStarting : GameState
+    //     {
+    //         public GameIsStarting(GameManager gameManager) : base(gameManager) { }
+
+    //         public override void OnStateEnter()
+    //         {
+    //             _gm.StartGame();
+    //         }
+    //     }
+
+    //     public class GameIsRunning : GameState
+    //     {
+    //         public GameIsRunning(GameManager gameManager) : base(gameManager) { }
+    //     }
+
+    //     public class GameIsStopping : GameState
+    //     {
+    //         public GameIsStopping(GameManager gameManager) : base(gameManager) { }
+
+    //         public override void OnStateEnter()
+    //         {
+    //             _gm.StopGame();
+    //         }
+    //     }
+
+    //     public class GameIsPlayingOutro : GameState
+    //     {
+
+    //         public GameIsPlayingOutro(GameManager gameManager) : base(gameManager) { }
+
+    //         public override void OnStateEnter()
+    //         {
+    //             _gm._gameOverCoroutine = _gm.StartCoroutine(_gm.PlayOutroAnimationRoutine(_gm.StopGame));
+    //         }
+    //     }
+
+    //     public class GameIsTerminate : GameState
+    //     {
+    //         public GameIsTerminate(GameManager gameManager) : base(gameManager) { }
+
+    //         public override void OnStateEnter()
+    //         {
+    //             _gm.TerminateGame();
+    //         }
+    //     }
+
+    //     public class GameIsNotRunning : GameState
+    //     {
+    //         public GameIsNotRunning(GameManager gameManager) : base(gameManager) { }
+    //     }
+
+    //     public class GameIsPaused : GameState
+    //     {
+    //         public GameIsPaused(GameManager gameManager) : base(gameManager) { }
+
+    //         public override void OnStateEnter()
+    //         {
+    //             _gm._spawnManager.PauseSpawning();
+
+    //             Time.timeScale = 0;
+    //         }
+
+    //         public override void OnStateExit()
+    //         {
+    //             _gm._spawnManager.ResumeSpawning();
+
+    //             Time.timeScale = 1;
+    //         }
+    //     }
 }
+
+public enum GameState
+{
+    INIT,
+    PLAY_INTRO,
+    RUNNING,
+    STOP,
+    PLAY_OUTRO,
+    TERMINATE,
+    NOT_RUNNING,
+
+    IS_PAUSED
+}
+
+
+/*public enum GameOverContext
+{
+    PLAYER_IS_DEAD,
+    GAME_WILL_RESTART
+}*/
 
 public class MapInfo
 {

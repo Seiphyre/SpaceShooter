@@ -32,9 +32,8 @@ public class DisplayGameMoney : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.OnGameStartBegin += StartDisplaying;
-        GameManager.Instance.OnGameOverBegin += StopDisplaying;
-        GameManager.Instance.OnGameRestart += StopDisplaying;
+        GameManager.Instance.OnGameInit += HandleOnGameStartBegin;
+        GameManager.Instance.OnGameStop += HandleOnGameOverBegin;
     }
 
     private void StartDisplaying()
@@ -63,15 +62,26 @@ public class DisplayGameMoney : MonoBehaviour
         _textAnim.Play(amount);
     }
 
+    // --v-- Event Handler --v--
+
+    private void HandleOnGameOverBegin()
+    {
+        StopDisplaying();
+    }
+
+    private void HandleOnGameStartBegin()
+    {
+        StartDisplaying();
+    }
+
     // --v-- Destroy --v--
     private void OnDestroy()
     {
         // Clear Events
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnGameStartBegin -= StartDisplaying;
-            GameManager.Instance.OnGameOverBegin -= StopDisplaying;
-            GameManager.Instance.OnGameRestart -= StopDisplaying;
+            GameManager.Instance.OnGameInit -= HandleOnGameStartBegin;
+            GameManager.Instance.OnGameStop -= HandleOnGameOverBegin;
         }
 
         if (_player != null)

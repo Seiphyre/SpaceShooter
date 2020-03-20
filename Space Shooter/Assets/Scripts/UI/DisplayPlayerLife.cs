@@ -24,9 +24,8 @@ public class DisplayPlayerLife : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.OnGameStartBegin += StartDisplaying;
-        GameManager.Instance.OnGameOverBegin += StopDisplaying;
-        GameManager.Instance.OnGameRestart += StopDisplaying;
+        GameManager.Instance.OnGameInit += HandleOnGameStartBegin;
+        GameManager.Instance.OnGameStop += HandleOnGameOverBegin;
     }
 
     private void StartDisplaying()
@@ -50,6 +49,18 @@ public class DisplayPlayerLife : MonoBehaviour
             player.OnTakeDamage -= UpdateAndDisplayLife;
     }
 
+    // --v-- Event Handler --v--
+
+    private void HandleOnGameOverBegin()
+    {
+        StopDisplaying();
+    }
+
+    private void HandleOnGameStartBegin()
+    {
+        StartDisplaying();
+    }
+
     // --v-- Display Life --v--
 
     private void UpdateAndDisplayLife()
@@ -63,9 +74,8 @@ public class DisplayPlayerLife : MonoBehaviour
         // Clear Events
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.OnGameStartBegin -= StartDisplaying;
-            GameManager.Instance.OnGameOverBegin -= StopDisplaying;
-            GameManager.Instance.OnGameRestart -= StopDisplaying;
+            GameManager.Instance.OnGameInit -= HandleOnGameStartBegin;
+            GameManager.Instance.OnGameStop -= HandleOnGameOverBegin;
         }
 
         if (_player != null)

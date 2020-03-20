@@ -45,21 +45,14 @@ public abstract class AEnemy : ADamagableEntity//AEntity//, IDamagable
         return boundaryEntityIn;
     }
 
-    public override void Reset()
-    {
-        base.Reset();
-
-        SelfDestruction();
-    }
-
     // --v-- ADamagableEntity Override --v--
 
-    protected override void DestructionByOther()
+    protected override void DestructionByDamage()
     {
         if (_crystalPrefab != null)
             InstantiateCrystals();
 
-        base.DestructionByOther();
+        base.DestructionByDamage();
     }
 
     // --v-- Unity Messages --v--

@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class GameOverPanel : APanel
 {
+    private bool _shouldShowPanel = false;
+
     // ----- [ Functions ] -----------------------------------------------------
 
     // --v-- Start --v-- 
@@ -11,7 +13,25 @@ public class GameOverPanel : APanel
     {
         base.Start();
 
-        GameManager.Instance.OnGameOverBegin += Show;
+        GameManager.Instance.OnGameStop += HandleOnGameStop;
+        GameManager.Instance.OnGameIsOver += HandleOnGameIsOver;
+    }
+
+    // --v-- Event Handler --v--
+
+    private void HandleOnGameStop()
+    {
+        if (_shouldShowPanel)
+        {
+            Show();
+
+            _shouldShowPanel = false;
+        }
+    }
+
+    private void HandleOnGameIsOver()
+    {
+        _shouldShowPanel = true;
     }
 
     // --v-- Destroy --v--
@@ -19,6 +39,9 @@ public class GameOverPanel : APanel
     {
         // Clear Events
         if (GameManager.Instance != null)
-            GameManager.Instance.OnGameOverBegin -= Show;
+        {
+            GameManager.Instance.OnGameStop -= HandleOnGameStop;
+            GameManager.Instance.OnGameIsOver -= HandleOnGameIsOver;
+        }
     }
 }
