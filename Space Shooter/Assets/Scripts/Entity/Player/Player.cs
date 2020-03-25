@@ -104,6 +104,16 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         // These values need to be reset
         _fireRateCountdown = 0;
         _crystals = 0;
+
+        _maxLife = new ModifiableUpgradableValue<int>(
+            2, new List<BuyableValue<int>>() {
+                 new BuyableValue<int>(3, 150),
+                 new BuyableValue<int>(4, 300),
+                 new BuyableValue<int>(5, 450),
+                 new BuyableValue<int>(6, 600)
+                 });
+
+        _currentLife = _maxLife.Value;
     }
 
     // protected override void Start()

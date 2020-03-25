@@ -9793,7 +9793,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _shouldDisplayBounds: 1
-  _maxLife: 3
+  _maxLife:
+    _values: 00000000
   _highLife: {r: 0, g: 1, b: 0, a: 1}
   _midLife: {r: 1, g: 0.65, b: 0, a: 1}
   _lowLife: {r: 1, g: 0, b: 0, a: 1}

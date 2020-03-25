@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.Collections.ObjectModel;
 
 public class SpawnManager : MonoBehaviour
 {
@@ -75,6 +76,8 @@ public class SpawnManager : MonoBehaviour
         }
     }
 
+    // static bool stop = false;
+
     private void Update()
     {
         if (!_isPaused)
@@ -83,6 +86,28 @@ public class SpawnManager : MonoBehaviour
 
             CalculateSpawn();
         }
+
+        // if (!stop)
+        // {
+        //     ReadOnlyUpgradableValue<int> maxLifeUpgrade;
+        //     maxLifeUpgrade = GameManager.Instance.Player.MaxLife.AsReadOnly();
+
+        //     Debug.Log("Avant : " + maxLifeUpgrade.Value);
+
+        //     GameManager.Instance.Player.UpgradeMaxLife();
+        //     GameManager.Instance.Player.UpgradeMaxLife();
+        //     GameManager.Instance.Player.UpgradeMaxLife();
+        //     GameManager.Instance.Player.UpgradeMaxLife();
+
+        //     Debug.Log("Apres : " + GameManager.Instance.Player.MaxLife.AsReadOnly().Value);
+
+        //     // List<int> list = new List<int>() { 1, 2, 3 };
+        //     // ReadOnlyCollection<int> readList = list.AsReadOnly();
+
+        //     // List<int> otherList = (List<int>) readList;
+
+        //     stop = true;
+        // }
     }
 
     // --v-- Spawn status --v--

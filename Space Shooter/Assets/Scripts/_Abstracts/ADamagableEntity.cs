@@ -18,9 +18,6 @@ public abstract class ADamagableEntity : AEntity
     [Header("DamagableEntity")]
 
     [SerializeField]
-    private int _maxLife = 1;
-
-    [SerializeField]
     private Color _highLife = Color.green;
     [SerializeField]
     private Color _midLife = new Color(1, 0.65f, 0); // Orange
@@ -30,7 +27,9 @@ public abstract class ADamagableEntity : AEntity
     [SerializeField]
     private Transform _explosionPrefab;
 
-    private int _currentLife;
+    protected ModifiableUpgradableValue<int> _maxLife;
+
+    protected int _currentLife;
 
     private MeshRenderer _mr;
 
@@ -44,7 +43,7 @@ public abstract class ADamagableEntity : AEntity
 
     public int Life { get { return (_currentLife); } }
 
-
+    public ModifiableUpgradableValue<int> MaxLife { get { return _maxLife; } }
 
     // ----- [ Functions ] ---------------------------------------------
 
@@ -55,12 +54,25 @@ public abstract class ADamagableEntity : AEntity
         base.Awake();
 
         _mr = GetComponent<MeshRenderer>();
-        _currentLife = _maxLife;
+        _maxLife = new ModifiableUpgradableValue<int>(1);
+        _currentLife = _maxLife.Value;
     }
 
     protected virtual void Start()
     {
 
+    }
+
+    // --v-- Max Life Upgrade --v--
+
+    public void UpgradeMaxLife()
+    {
+        _maxLife.Upgrade();
+    }
+
+    public void DowngradeMaxLife()
+    {
+        _maxLife.Downgrade();
     }
 
     // --v-- Damage Management --v--
@@ -118,9 +130,9 @@ public abstract class ADamagableEntity : AEntity
         Color startColor = Color.white;
         Color blinkColor = Color.white;
 
-        float step = _maxLife / 3f;
+        float step = _maxLife.Value / 3f;
 
-        if (Utils.IsValueInRange(_currentLife, (step * 2) + 0.1f, _maxLife) && _mr.material.color != _highLife)
+        if (Utils.IsValueInRange(_currentLife, (step * 2) + 0.1f, _maxLife.Value) && _mr.material.color != _highLife)
             blinkColor = _highLife;
         else if (Utils.IsValueInRange(_currentLife, step + 0.1f, step * 2) && _mr.material.color != _midLife)
             blinkColor = _midLife;
