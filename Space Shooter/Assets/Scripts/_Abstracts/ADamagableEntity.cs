@@ -43,7 +43,7 @@ public abstract class ADamagableEntity : AEntity
 
     public int Life { get { return (_currentLife); } }
 
-    public ModifiableUpgradableValue<int> MaxLife { get { return _maxLife; } }
+    public ReadOnlyUpgradableValue<int> MaxLife { get { return _maxLife.AsReadOnly(); } }
 
     // ----- [ Functions ] ---------------------------------------------
 
@@ -67,12 +67,12 @@ public abstract class ADamagableEntity : AEntity
 
     public void UpgradeMaxLife()
     {
-        _maxLife.Upgrade();
-    }
+        bool upgradeSucceeded;
 
-    public void DowngradeMaxLife()
-    {
-        _maxLife.Downgrade();
+        upgradeSucceeded = _maxLife.Upgrade();
+
+        if (upgradeSucceeded)
+            _currentLife++;
     }
 
     // --v-- Damage Management --v--

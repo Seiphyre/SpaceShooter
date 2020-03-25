@@ -28,10 +28,8 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
 
     // --v-- Movement --v--
 
-    [Header("Player/Movement")]
 
-    [SerializeField]
-    private float _speed = 3.5f;
+    private ModifiableUpgradableValue<float> _speed;
 
     private bool _allowManualMovement = true;
 
@@ -47,7 +45,7 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
     private Transform _bulletPrefab = null;
 
     [SerializeField]
-    private float _fireRate = 0.5f;
+    private ModifiableUpgradableValue<float> _fireRate;
 
     private float _fireRateCountdown = 0;
 
@@ -78,7 +76,9 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
 
     public int Crystals { get { return _crystals; } }
 
+    public ReadOnlyUpgradableValue<float> FireRate { get { return _fireRate.AsReadOnly(); } }
 
+    public ReadOnlyUpgradableValue<float> Speed { get { return _speed.AsReadOnly(); } }
 
     // ----- [ Functions ] -----------------------------------------------------
 
@@ -106,14 +106,47 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         _crystals = 0;
 
         _maxLife = new ModifiableUpgradableValue<int>(
-            2, new List<BuyableValue<int>>() {
+            2,
+            new List<BuyableValue<int>>() {
                  new BuyableValue<int>(3, 150),
                  new BuyableValue<int>(4, 300),
                  new BuyableValue<int>(5, 450),
                  new BuyableValue<int>(6, 600)
-                 });
+                 },
+            2);
 
         _currentLife = _maxLife.Value;
+
+        _fireRate = new ModifiableUpgradableValue<float>(
+            1,
+            new List<BuyableValue<float>>() {
+                 new BuyableValue<float>(0.95f, 50),
+                 new BuyableValue<float>(0.9f, 50),
+                 new BuyableValue<float>(0.85f, 100),
+                 new BuyableValue<float>(0.8f, 100),
+                 new BuyableValue<float>(0.75f, 200),
+                 new BuyableValue<float>(0.7f, 200),
+                 new BuyableValue<float>(0.65f, 300),
+                 new BuyableValue<float>(0.6f, 300),
+                 new BuyableValue<float>(0.55f, 400),
+                 new BuyableValue<float>(0.5f, 400),
+                 },
+            0);
+
+        _speed = new ModifiableUpgradableValue<float>(
+            6f,
+            new List<BuyableValue<float>>() {
+                new BuyableValue<float>(6.5f, 100),
+                new BuyableValue<float>(7f, 200),
+                new BuyableValue<float>(7.5f, 300),
+                new BuyableValue<float>(8f, 400),
+                new BuyableValue<float>(8.5f, 500),
+                new BuyableValue<float>(9f, 500),
+                new BuyableValue<float>(9.5f, 550),
+                new BuyableValue<float>(10f, 600),
+                },
+            5);
+
     }
 
     // protected override void Start()
@@ -149,9 +182,14 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
     private void FireBullet()
     {
         Instantiate(_bulletPrefab, _bulletSpawn.transform.position, _bulletSpawn.transform.rotation);
-        _fireRateCountdown = _fireRate;
+        _fireRateCountdown = _fireRate.Value;
     }
 
+    public void UpgradeFireRate()
+    {
+        _fireRate.Upgrade();
+        _fireRateCountdown = 0f;
+    }
 
     // --v-- Movement --v--
 
@@ -162,7 +200,7 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         Vector3 direction = new Vector3(horizontalInput, verticalInput, 0);
 
         // Apply movement
-        transform.Translate(direction * _speed * Time.deltaTime, Space.World);
+        transform.Translate(direction * _speed.Value * Time.deltaTime, Space.World);
 
         // Animation
         ResetMovementAnimation();
@@ -206,7 +244,7 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
     {
         // Use real speed
         if (duration == -1)
-            duration = path.Length / _speed;
+            duration = path.Length / _speed.Value;
 
         // Disable manual movement 
         _allowManualMovement = false;
@@ -291,6 +329,10 @@ public class Player : ADamagableEntity// AEntity//, IDamagable
         _animator.SetBool("IsMovingRight", false);
     }
 
+    private void UpgradeSpeed()
+    {
+        _speed.Upgrade();
+    }
 
     // --v-- Crystal gathering --v--
 

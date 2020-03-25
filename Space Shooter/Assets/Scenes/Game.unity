@@ -23559,7 +23559,7 @@ MonoBehaviour:
     type: 3}
   _playerStartPos: {fileID: 80896998}
   _playerStartAnim: {fileID: 1724263338}
-  _playerStartAnimDuration: -1
+  _playerStartAnimDuration: 3
   _shouldDisplayPadding: 1
   _shouldDisplayMargin: 1
   _shouldDisplayBounds: 1

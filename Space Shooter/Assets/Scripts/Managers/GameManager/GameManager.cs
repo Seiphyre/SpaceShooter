@@ -37,7 +37,7 @@ public class GameManager : Singleton<GameManager>
     private CurvePath _playerStartAnim;
 
     [SerializeField]
-    private float _playerStartAnimDuration = -1;
+    private float _playerStartAnimDuration = -1f;
 
     private Player _player;
 

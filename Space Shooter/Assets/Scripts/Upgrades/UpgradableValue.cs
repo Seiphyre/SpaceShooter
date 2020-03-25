@@ -73,7 +73,7 @@ public sealed class ReadOnlyUpgradableValue<T> : UpgradableValue<T>
         _upgradedValues = null;
         _levelIndex = -1;
     }
-    public ReadOnlyUpgradableValue(T defaultValue, List<BuyableValue<T>> upgradedValues, int stepIndex = 0)
+    public ReadOnlyUpgradableValue(T defaultValue, List<BuyableValue<T>> upgradedValues, int level = 0)
     {
         _defaultValue = defaultValue;
 
@@ -85,7 +85,7 @@ public sealed class ReadOnlyUpgradableValue<T> : UpgradableValue<T>
         else
         {
             _upgradedValues = new List<BuyableValue<T>>(upgradedValues);
-            _levelIndex = Mathf.Clamp(stepIndex, 0, _upgradedValues.Count - 1);
+            _levelIndex = Mathf.Clamp(level - 1, -1, _upgradedValues.Count - 1);
         }
     }
 }
@@ -101,7 +101,7 @@ public sealed class ModifiableUpgradableValue<T> : UpgradableValue<T>
         _upgradedValues = null;
         _levelIndex = -1;
     }
-    public ModifiableUpgradableValue(T defaultValue, List<BuyableValue<T>> upgradedValues, int stepIndex = 0)
+    public ModifiableUpgradableValue(T defaultValue, List<BuyableValue<T>> upgradedValues, int level = 0)
     {
         _defaultValue = defaultValue;
 
@@ -113,25 +113,27 @@ public sealed class ModifiableUpgradableValue<T> : UpgradableValue<T>
         else
         {
             _upgradedValues = new List<BuyableValue<T>>(upgradedValues);
-            _levelIndex = Mathf.Clamp(stepIndex, 0, _upgradedValues.Count - 1);
+            _levelIndex = Mathf.Clamp(level - 1, -1, _upgradedValues.Count - 1);
         }
     }
 
 
     // --v-- Other --v--
 
-    public void Upgrade()
+    public bool Upgrade()
     {
-        if (_levelIndex >= _upgradedValues.Count - 1) return;
+        if (_levelIndex >= _upgradedValues.Count - 1) return false;
 
         LevelIndex += 1;
+        return true;
     }
 
-    public void Downgrade()
+    public bool Downgrade()
     {
-        if (_levelIndex <= 0) return;
+        if (_levelIndex <= 0) return false;
 
         LevelIndex -= 1;
+        return true;
     }
 
     public void Reset()
